@@ -7,8 +7,6 @@ RSpec.describe BooksController, type: :controller do
 
   let(:books) { [ruby_microscope, ruby_on_rails_tutorial, agile_web_development] }
 
-  let(:json_body) { JSON.parse(response.body) }
-
   describe 'GET /api/books' do
     before { books }
 
