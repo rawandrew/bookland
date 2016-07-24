@@ -26,4 +26,11 @@ RSpec.describe BasePresenter do
       expect(presenter.to_json).to eq '{"something":"cool"}'
     end
   end
+
+  describe '.build_with' do
+    it 'stores ["id", "title"] in "build_attributes"' do
+      Presenter.build_with :id, :title
+      expect(Presenter.build_attributes).to eq ['id', 'title']
+    end
+  end
 end
