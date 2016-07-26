@@ -52,7 +52,7 @@ RSpec.describe BooksController, type: :controller do
     describe 'pagination' do
 
       context 'when asking for the first page' do
-        before { get :index, params: { page: 1, per: 2} }
+        before { get :index, params: { page: 1, per: 2 } }
 
         it 'receives HTTP status 200' do
           expect(response.status).to eq 200
@@ -69,7 +69,7 @@ RSpec.describe BooksController, type: :controller do
       end
 
       context 'when asking for the second page' do
-        before { get :index, params: { page: 2, per: 2} }
+        before { get :index, params: { page: 2, per: 2 } }
 
         it 'receives HTTP status 200' do
           expect(response.status).to eq 200
@@ -77,6 +77,22 @@ RSpec.describe BooksController, type: :controller do
 
         it 'receives only one book' do
           expect(json_body['data'].size).to eq 1
+        end
+      end
+
+      context 'when sending invalid "page" and "per" parameters' do
+        before { get :index, params: { page: 'fake', per: 2 } }
+
+        it 'receives HTTP status 400' do
+          expect(response.status).to eq 400
+        end
+
+        it 'receives an error' do
+          expect(json_body['error']).to_not be nil
+        end
+
+        it 'receives "page=fake" as an invalid param' do
+          expect(json_body['error']['invalid_params']).to eq 'page=fake'
         end
       end
     end
