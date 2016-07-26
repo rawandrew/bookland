@@ -38,7 +38,7 @@ RSpec.describe BooksController, type: :controller do
         end
       end
 
-      context "without the 'fields' parameter" do
+      context 'without the "fields" parameter' do
         before { get :index }
 
         it 'gets books with all the fields specified in the presenter' do
@@ -121,6 +121,34 @@ RSpec.describe BooksController, type: :controller do
 
         it 'receives "sort=fid" as an invalid param' do
           expect(json_body['error']['invalid_params']).to eq 'sort=fid'
+        end
+      end
+    end
+
+    describe 'filtering' do
+
+      context 'with valid filtering param "q[title_cont]=Microscope"' do
+
+        it 'receives "Ruby under a microscope" back' do
+          get :index, params: { 'q[title_cont]' => 'Microscope' }
+          expect(json_body['data'].first['id']).to eq ruby_microscope.id
+          expect(json_body['data'].size).to eq 1
+        end
+      end
+
+      context 'with invalid filtering param "q[ftitle_cont]=Microscope"' do
+        before { get :index, params: { 'q[ftitle_cont]' => 'Microscope' } }
+
+        it 'gets `400 Bad Request` back' do
+          expect(response.status).to eq 400
+        end
+
+        it 'receives an error' do
+          expect(json_body['error']).to_not be nil
+        end
+
+        it 'receives "q[ftitle_cont]=Ruby" as an invalid param' do
+          expect(json_body['error']['invalid_params']).to eq 'q[ftitle_cont]=Microscope'
         end
       end
     end
