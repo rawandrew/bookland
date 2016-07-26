@@ -29,7 +29,7 @@ RSpec.describe BooksController, type: :controller do
     describe 'field picking' do
 
       context 'with the fields parameter' do
-        before { get :index, params: { fields: ['id', 'title', 'author_id'] } }
+        before { get :index, params: { fields: 'id,title,author_id' } }
 
         it 'gets books with only the id, title and author_id keys' do
           json_body['data'].each do |book|

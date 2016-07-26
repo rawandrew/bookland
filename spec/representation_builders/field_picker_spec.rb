@@ -1,8 +1,9 @@
 require "rails_helper"
+
 RSpec.describe "FieldPicker" do
 
   let(:rails_tutorial) { create(:ruby_on_rails_tutorial) }
-  let(:params) { { fields: ['id', 'title', 'subtitle'] } }
+  let(:params) { { fields: 'id,title,subtitle' } }
   let(:presenter) { BookPresenter.new(rails_tutorial, params) }
   let(:field_picker) { FieldPicker.new(presenter) }
 
