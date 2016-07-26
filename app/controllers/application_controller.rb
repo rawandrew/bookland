@@ -14,6 +14,10 @@ class ApplicationController < ActionController::API
            }
   end
 
+  def sort(scope)
+    Sorter.new(scope, params).sort
+  end
+
   def paginate(scope)
     paginator = Paginator.new(scope, request.query_parameters, current_url)
     response.headers['Link'] = paginator.links
