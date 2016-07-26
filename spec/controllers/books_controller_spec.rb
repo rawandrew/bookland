@@ -96,5 +96,13 @@ RSpec.describe BooksController, type: :controller do
         end
       end
     end
+
+    describe 'sorting' do
+      it 'sorts the books by "id desc"' do
+        get :index, params: { sort: 'id', dir: 'desc' }
+        expect(json_body['data'].first['id']).to eq agile_web_development.id
+        expect(json_body['data'].last['id']).to eq ruby_microscope.id
+      end
+    end
   end
 end
