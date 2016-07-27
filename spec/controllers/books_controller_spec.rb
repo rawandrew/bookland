@@ -47,6 +47,22 @@ RSpec.describe BooksController, type: :controller do
           end
         end
       end
+
+      context 'with invalid field name "fid"' do
+        before { get :index, params: { fields: 'fid,title,author_id' } }
+
+        it 'gets `400 Bad Request` back' do
+          expect(response.status).to eq 400
+        end
+
+        it 'receives an error' do
+          expect(json_body['error']).to_not be nil
+        end
+
+        it 'receives "fields=fid" as an invalid param' do
+          expect(json_body['error']['invalid_params']).to eq 'fields=fid'
+        end
+      end
     end
 
     describe 'pagination' do
