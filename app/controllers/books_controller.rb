@@ -2,7 +2,7 @@ class BooksController < ApplicationController
 
   def index
     books = filter(sort(paginate(Book.all))).map do |book|
-      FieldPicker.new(BookPresenter.new(book, params)).pick
+      BookPresenter.new(book, params).fields.embeds
     end
 
     render json: { data: books }.to_json
