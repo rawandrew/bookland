@@ -16,6 +16,10 @@ class ApplicationController < ActionController::API
            }
   end
 
+  def eager_load(scope)
+    EagerLoader.new(scope, params).load
+  end
+
   def filter(scope)
     Filter.new(scope, params.to_unsafe_hash).filter
   end
