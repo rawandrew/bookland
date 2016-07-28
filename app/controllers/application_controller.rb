@@ -17,6 +17,16 @@ class ApplicationController < ActionController::API
            }
   end
 
+  def unprocessable_entity!(resource)
+    render status: :unprocessable_entity,
+           json: {
+               error: {
+                   message: "Invalid parameters for resource #{resource.class}.",
+                   invalid_params: resource.errors
+               }
+           }
+  end
+
   def orchestrate_query(scope, actions = :all)
     QueryOrchestrator.new(scope: scope,
                           params: params,

@@ -220,4 +220,49 @@ RSpec.describe BooksController, type: :controller do
       end
     end
   end
+
+  describe 'POST /api/books' do
+    let(:author) { create(:michael_hartl) }
+
+    before { post :create, params: { data: params } }
+    context 'with valid parameters' do
+      let(:params) do
+        attributes_for(:ruby_on_rails_tutorial, author_id: author.id)
+      end
+
+      it 'gets HTTP status 201' do
+        expect(response.status).to eq 201
+      end
+
+      it 'receives the newly created resource' do
+        expect(json_body['data']['title']).to eq 'Ruby on Rails Tutorial'
+      end
+
+      it 'adds a record in the database' do
+        expect(Book.count).to eq 1
+      end
+
+      it 'gets the new resource location in the Location header' do
+        expect(response.headers['Location'])
+            .to eq("http://test.host/api/books/#{Book.first.id}")
+      end
+    end
+
+    context 'with invalid parameters' do
+      let(:params) { attributes_for(:ruby_on_rails_tutorial, title: '') }
+
+      it 'gets HTTP status 422' do
+        expect(response.status).to eq 422
+      end
+
+      it 'receives an error details' do
+        expect(json_body['error']['invalid_params']).
+            to eq( { "title"=>["can't be blank"], "author"=>["can't be blank"] } )
+      end
+
+      it 'does not add a record in the database' do
+        expect(Book.count).to eq 0
+      end
+    end
+  end
 end
