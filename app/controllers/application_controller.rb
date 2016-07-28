@@ -23,4 +23,12 @@ class ApplicationController < ActionController::API
                           response: response,
                           actions: actions).run
   end
+
+  def serialize(data)
+    {
+        json: Bookland::Serializer.new(data: data,
+                                       params: params,
+                                       actions: [:fields, :embeds]).to_json
+    }
+  end
 end
