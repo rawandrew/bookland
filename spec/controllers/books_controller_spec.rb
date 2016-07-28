@@ -265,4 +265,40 @@ RSpec.describe BooksController, type: :controller do
       end
     end
   end
+
+  describe 'PATCH /api/books/:id' do
+    before { patch :update, params: { id: ruby_on_rails_tutorial.id, data: params } }
+
+    context 'with valid parameters' do
+      let(:params) { { title: 'The Ruby on Rails Tutorial' } }
+
+      it 'gets HTTP status 200' do
+        expect(response.status).to eq 200
+      end
+
+      it 'receives the updated resource' do
+        expect(json_body['data']['title']).to eq('The Ruby on Rails Tutorial')
+      end
+
+      it 'updates the record in the database' do
+        expect(Book.first.title).to eq 'The Ruby on Rails Tutorial'
+      end
+    end
+
+    context 'with invalid parameters' do
+      let(:params) { { title: '' } }
+
+      it 'gets HTTP status 422' do
+        expect(response.status).to eq 422
+      end
+
+      it 'receives an error details' do
+        expect(json_body['error']['invalid_params']).to eq({ 'title'=>['can\'t be blank'] })
+      end
+
+      it 'does not add a record in the database' do
+        expect(Book.first.title).to eq 'Ruby on Rails Tutorial'
+      end
+    end
+  end
 end

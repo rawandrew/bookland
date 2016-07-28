@@ -17,6 +17,14 @@ class BooksController < ApplicationController
     end
   end
 
+  def update
+    if book.update(book_params)
+      render serialize(book).merge(status: :ok)
+    else
+      unprocessable_entity!(book)
+    end
+  end
+
   private
 
   def book
