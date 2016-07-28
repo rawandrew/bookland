@@ -301,4 +301,25 @@ RSpec.describe BooksController, type: :controller do
       end
     end
   end
+
+  describe 'DELETE /api/books/:id' do
+    context 'with existing resource' do
+
+      before { delete :destroy, params: { id: ruby_on_rails_tutorial } }
+      it 'gets HTTP status 204' do
+        expect(response.status).to eq 204
+      end
+
+      it 'deletes the book from the database' do
+        expect(Book.count).to eq 0
+      end
+    end
+
+    context 'with nonexistent resource' do
+      it 'gets HTTP status 404' do
+        delete :destroy, params: { id: 2449719371 }
+        expect(response.status).to eq 404
+      end
+    end
+  end
 end
