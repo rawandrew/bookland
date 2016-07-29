@@ -186,18 +186,82 @@ RSpec.describe AuthorsController, type: :controller do
   end
 
   describe 'POST /api/authors' do
+
+    before { post :create, params: { data: params } }
     context 'with valid parameters' do
+      let(:params) do
+        attributes_for(:michael_hartl)
+      end
+
+      it 'gets HTTP status 201' do
+        expect(response.status).to eq 201
+      end
+
+      it 'receives the newly created resource' do
+        expect(json_body['data']['given_name']).to eq 'Michael'
+      end
+
+      it 'adds a record in the database' do
+        expect(Author.count).to eq 1
+      end
+
+      it 'gets the new resource location in the Location header' do
+        expect(response.headers['Location'])
+            .to eq("http://test.host/api/authors/#{Author.first.id}")
+      end
     end
 
     context 'with invalid parameters' do
+      let(:params) { attributes_for(:michael_hartl, given_name: '') }
+
+      it 'gets HTTP status 422' do
+        expect(response.status).to eq 422
+      end
+
+      it 'receives an error details' do
+        expect(json_body['error']['invalid_params']).
+            to eq( { "given_name"=>["can't be blank"] } )
+      end
+
+      it 'does not add a record in the database' do
+        expect(Author.count).to eq 0
+      end
     end
   end
 
   describe 'PATCH /api/authors/:id' do
+    before { patch :update, params: { id: michael.id, data: params } }
+
     context 'with valid parameters' do
+      let(:params) { { given_name: 'Jhonny' } }
+
+      it 'gets HTTP status 200' do
+        expect(response.status).to eq 200
+      end
+
+      it 'receives the updated resource' do
+        expect(json_body['data']['given_name']).to eq('Jhonny')
+      end
+
+      it 'updates the record in the database' do
+        expect(Author.first.given_name).to eq 'Jhonny'
+      end
     end
 
     context 'with invalid parameters' do
+      let(:params) { { given_name: '' } }
+
+      it 'gets HTTP status 422' do
+        expect(response.status).to eq 422
+      end
+
+      it 'receives an error details' do
+        expect(json_body['error']['invalid_params']).to eq({ 'given_name'=>['can\'t be blank'] })
+      end
+
+      it 'does not add a record in the database' do
+        expect(Author.first.given_name).to eq 'Michael'
+      end
     end
   end
 

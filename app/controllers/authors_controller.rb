@@ -9,6 +9,22 @@ class AuthorsController < ApplicationController
     render serialize(author)
   end
 
+  def create
+    if author.save
+      render serialize(author).merge(status: :created, location: author)
+    else
+      unprocessable_entity!(author)
+    end
+  end
+
+  def update
+    if author.update(author_params)
+      render serialize(author).merge(status: :ok)
+    else
+      unprocessable_entity!(author)
+    end
+  end
+
   private
 
   def author
