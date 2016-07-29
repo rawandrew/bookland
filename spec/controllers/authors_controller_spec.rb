@@ -165,9 +165,23 @@ RSpec.describe AuthorsController, type: :controller do
 
   describe 'GET /api/authors/:id' do
     context 'with existing resource' do
+      before { get :show, params: { id: sam.id } }
+
+      it 'gets HTTP status 200' do
+        expect(response.status).to eq 200
+      end
+
+      it 'receives "sam" author as JSON' do
+        expected = { data: AuthorPresenter.new(sam, {}).fields.embeds }
+        expect(response.body).to eq(expected.to_json)
+      end
     end
 
     context 'with nonexistent resource' do
+      it 'gets HTTP status 404' do
+        get :show, params: { id: 232521442 }
+        expect(response.status).to eq 404
+      end
     end
   end
 
