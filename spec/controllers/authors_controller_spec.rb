@@ -109,6 +109,7 @@ RSpec.describe AuthorsController, type: :controller do
         end
       end
     end
+
     describe 'sorting' do
       context 'with valid column name "id"' do
         it 'sorts the books by "id desc"' do
