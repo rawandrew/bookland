@@ -267,9 +267,22 @@ RSpec.describe AuthorsController, type: :controller do
 
   describe 'DELETE /api/authors/:id' do
     context 'with existing resource' do
+
+      before { delete :destroy, params: { id: michael } }
+      it 'gets HTTP status 204' do
+        expect(response.status).to eq 204
+      end
+
+      it 'deletes the book from the database' do
+        expect(Author.count).to eq 0
+      end
     end
 
     context 'with nonexistent resource' do
+      it 'gets HTTP status 404' do
+        delete :destroy, params: { id: 2449719371 }
+        expect(response.status).to eq 404
+      end
     end
   end
 end

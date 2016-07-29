@@ -25,6 +25,11 @@ class AuthorsController < ApplicationController
     end
   end
 
+  def destroy
+    author.destroy
+    render status: :no_content
+  end
+
   private
 
   def author
