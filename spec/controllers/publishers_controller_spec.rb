@@ -1,14 +1,13 @@
 require 'rails_helper'
 
-RSpec.describe BooksController, type: :controller do
-  let(:ruby_microscope) { create(:ruby_microscope) }
-  let(:ruby_on_rails_tutorial) { create(:ruby_on_rails_tutorial) }
-  let(:agile_web_development) { create(:agile_web_development) }
+RSpec.describe PublishersController, type: :controller do
+  let(:oreilly) { create(:publisher) }
+  let(:dev_media) { create(:dev_media) }
+  let(:super_books) { create(:super_books) }
+  let(:publishers) { [oreilly, dev_media, super_books] }
 
-  let(:books) { [ruby_microscope, ruby_on_rails_tutorial, agile_web_development] }
-
-  describe 'GET /api/books' do
-    before { books }
+  describe 'GET /api/publishers' do
+    before { publishers }
 
     context 'default behavior' do
       before { get :index }
@@ -21,35 +20,34 @@ RSpec.describe BooksController, type: :controller do
         expect(json_body['data']).to_not be nil
       end
 
-      it 'receives all 3 books' do
+      it 'receives all 3 publishers' do
         expect(json_body['data'].size).to eq 3
       end
     end
 
     describe 'field picking' do
-
       context 'with the fields parameter' do
-        before { get :index, params: { fields: 'id,title,author_id' } }
+        before { get :index, params: { fields: 'name' } }
 
-        it 'gets books with only the id, title and author_id keys' do
-          json_body['data'].each do |book|
-            expect(book.keys).to eq ['id', 'title', 'author_id']
+        it 'gets publishers with only the name key' do
+          json_body['data'].each do |publisher|
+            expect(publisher.keys).to eq ['name']
           end
         end
       end
 
-      context 'without the "fields" parameter' do
+      context 'without the field parameter' do
         before { get :index }
 
-        it 'gets books with all the fields specified in the presenter' do
-          json_body['data'].each do |book|
-            expect(book.keys).to eq BookPresenter.build_attributes.map(&:to_s)
+        it 'gets publishers with all the fields specified in the presenter' do
+          json_body['data'].each do |publisher|
+            expect(publisher.keys).to eq PublisherPresenter.build_attributes.map(&:to_s)
           end
         end
       end
 
       context 'with invalid field name "fid"' do
-        before { get :index, params: { fields: 'fid,title,author_id' } }
+        before { get :index, params: { fields: 'fid,name' } }
 
         it 'gets `400 Bad Request` back' do
           expect(response.status).to eq 400
@@ -65,36 +63,7 @@ RSpec.describe BooksController, type: :controller do
       end
     end
 
-    describe 'embed picking' do
-      context 'with the "embed" parameter' do
-        before { get :index, params: { embed: 'author'} }
-
-        it 'gets the books with their authors embedded' do
-          json_body['data'].each do |book|
-            expect(book['author'].keys).to eq(['id', 'given_name', 'family_name', 'created_at', 'updated_at'])
-          end
-        end
-      end
-
-      context 'with invalid "embed" relation "fake"' do
-        before { get :index, params: { embed: 'fake,author'} }
-
-        it 'gets `400 Bad Request` back' do
-          expect(response.status).to eq 400
-        end
-
-        it 'receives an error' do
-          expect(json_body['error']).to_not be nil
-        end
-
-        it 'receives "fields=fid" as an invalid param' do
-          expect(json_body['error']['invalid_params']).to eq 'embed=fake'
-        end
-      end
-    end
-
     describe 'pagination' do
-
       context 'when asking for the first page' do
         before { get :index, params: { page: 1, per: 2 } }
 
@@ -102,13 +71,13 @@ RSpec.describe BooksController, type: :controller do
           expect(response.status).to eq 200
         end
 
-        it 'receives only two books' do
+        it 'receives only two authors' do
           expect(json_body['data'].size).to eq 2
         end
 
         it 'receives a response with the Link header' do
           expect(response.headers['Link'].split(', ').first)
-              .to eq('<http://test.host/api/books?page=2&per=2>; rel="next"')
+              .to eq('<http://test.host/api/publishers?page=2&per=2>; rel="next"')
         end
       end
 
@@ -143,12 +112,11 @@ RSpec.describe BooksController, type: :controller do
 
     describe 'sorting' do
       context 'with valid column name "id"' do
-
-        it 'sorts the books by "id desc"' do
+        it 'sorts the publishers by "id desc"' do
           get :index, params: {sort: 'id', dir: 'desc'}
 
-          expect(json_body['data'].first['id']).to eq agile_web_development.id
-          expect(json_body['data'].last['id']).to eq ruby_microscope.id
+          expect(json_body['data'].first['id']).to eq super_books.id
+          expect(json_body['data'].last['id']).to eq oreilly.id
         end
       end
 
@@ -170,18 +138,16 @@ RSpec.describe BooksController, type: :controller do
     end
 
     describe 'filtering' do
-
-      context 'with valid filtering param "q[title_cont]=Microscope"' do
-
-        it 'receives "Ruby under a microscope" back' do
-          get :index, params: { 'q[title_cont]' => 'Microscope' }
-          expect(json_body['data'].first['id']).to eq ruby_microscope.id
+      context 'with valid filtering param "q[name_cont]=Reilly"' do
+        it 'receives "OReilly" back' do
+          get :index, params: { 'q[name_cont]' => 'Reilly' }
+          expect(json_body['data'].first['id']).to eq oreilly.id
           expect(json_body['data'].size).to eq 1
         end
       end
 
-      context 'with invalid filtering param "q[ftitle_cont]=Microscope"' do
-        before { get :index, params: { 'q[ftitle_cont]' => 'Microscope' } }
+      context 'with invalid filtering param "q[fname_cont]=Reilly"' do
+        before { get :index, params: { 'q[fname_cont]' => 'Reilly' } }
 
         it 'gets `400 Bad Request` back' do
           expect(response.status).to eq 400
@@ -191,29 +157,28 @@ RSpec.describe BooksController, type: :controller do
           expect(json_body['error']).to_not be nil
         end
 
-        it 'receives "q[ftitle_cont]=Ruby" as an invalid param' do
-          expect(json_body['error']['invalid_params']).to eq 'q[ftitle_cont]=Microscope'
+        it 'receives "q[fname_cont]=Reilly" as an invalid param' do
+          expect(json_body['error']['invalid_params']).to eq 'q[fname_cont]=Reilly'
         end
       end
     end
   end
 
-  describe 'GET /api/books/:id' do
+  describe 'GET /api/publishers/:id' do
     context 'with existing resource' do
-      before { get :show, params: { id: ruby_on_rails_tutorial.id } }
+      before { get :show, params: { id: dev_media.id } }
 
       it 'gets HTTP status 200' do
         expect(response.status).to eq 200
       end
 
-      it 'receives the "rails_tutorial" book as JSON' do
-        expected = { data: BookPresenter.new(ruby_on_rails_tutorial, {}).fields.embeds }
+      it 'receives "dev_media" author as JSON' do
+        expected = { data: PublisherPresenter.new(dev_media, {}).fields.embeds }
         expect(response.body).to eq(expected.to_json)
       end
     end
 
     context 'with nonexistent resource' do
-
       it 'gets HTTP status 404' do
         get :show, params: { id: 232521442 }
         expect(response.status).to eq 404
@@ -221,13 +186,12 @@ RSpec.describe BooksController, type: :controller do
     end
   end
 
-  describe 'POST /api/books' do
-    let(:author) { create(:michael_hartl) }
+  describe 'POST /api/publishers' do
 
     before { post :create, params: { data: params } }
     context 'with valid parameters' do
       let(:params) do
-        attributes_for(:ruby_on_rails_tutorial, author_id: author.id)
+        attributes_for(:publisher)
       end
 
       it 'gets HTTP status 201' do
@@ -235,21 +199,21 @@ RSpec.describe BooksController, type: :controller do
       end
 
       it 'receives the newly created resource' do
-        expect(json_body['data']['title']).to eq 'Ruby on Rails Tutorial'
+        expect(json_body['data']['name']).to eq 'O\'Reilly'
       end
 
       it 'adds a record in the database' do
-        expect(Book.count).to eq 1
+        expect(Publisher.count).to eq 1
       end
 
       it 'gets the new resource location in the Location header' do
         expect(response.headers['Location'])
-            .to eq("http://test.host/api/books/#{Book.first.id}")
+            .to eq("http://test.host/api/publishers/#{Publisher.first.id}")
       end
     end
 
     context 'with invalid parameters' do
-      let(:params) { attributes_for(:ruby_on_rails_tutorial, title: '') }
+      let(:params) { attributes_for(:publisher, name: '') }
 
       it 'gets HTTP status 422' do
         expect(response.status).to eq 422
@@ -257,61 +221,61 @@ RSpec.describe BooksController, type: :controller do
 
       it 'receives an error details' do
         expect(json_body['error']['invalid_params']).
-            to eq( { "title"=>["can't be blank"], "author"=>["can't be blank"] } )
+            to eq( { "name"=>["can't be blank"] } )
       end
 
       it 'does not add a record in the database' do
-        expect(Book.count).to eq 0
+        expect(Publisher.count).to eq 0
       end
     end
   end
 
-  describe 'PATCH /api/books/:id' do
-    before { patch :update, params: { id: ruby_on_rails_tutorial.id, data: params } }
+  describe 'PATCH /api/publishers/:id' do
+    before { patch :update, params: { id: oreilly.id, data: params } }
 
     context 'with valid parameters' do
-      let(:params) { { title: 'The Ruby on Rails Tutorial' } }
+      let(:params) { { name: 'Pragmatic Programming' } }
 
       it 'gets HTTP status 200' do
         expect(response.status).to eq 200
       end
 
       it 'receives the updated resource' do
-        expect(json_body['data']['title']).to eq('The Ruby on Rails Tutorial')
+        expect(json_body['data']['name']).to eq('Pragmatic Programming')
       end
 
       it 'updates the record in the database' do
-        expect(Book.first.title).to eq 'The Ruby on Rails Tutorial'
+        expect(Publisher.first.name).to eq 'Pragmatic Programming'
       end
     end
 
     context 'with invalid parameters' do
-      let(:params) { { title: '' } }
+      let(:params) { { name: '' } }
 
       it 'gets HTTP status 422' do
         expect(response.status).to eq 422
       end
 
       it 'receives an error details' do
-        expect(json_body['error']['invalid_params']).to eq({ 'title'=>['can\'t be blank'] })
+        expect(json_body['error']['invalid_params']).to eq({ 'name'=>['can\'t be blank'] })
       end
 
       it 'does not add a record in the database' do
-        expect(Book.first.title).to eq 'Ruby on Rails Tutorial'
+        expect(Publisher.first.name).to eq 'O\'Reilly'
       end
     end
   end
 
-  describe 'DELETE /api/books/:id' do
+  describe 'DELETE /api/publishers/:id' do
     context 'with existing resource' do
 
-      before { delete :destroy, params: { id: ruby_on_rails_tutorial } }
+      before { delete :destroy, params: { id: oreilly } }
       it 'gets HTTP status 204' do
         expect(response.status).to eq 204
       end
 
       it 'deletes the book from the database' do
-        expect(Book.count).to eq 0
+        expect(Publisher.count).to eq 0
       end
     end
 
